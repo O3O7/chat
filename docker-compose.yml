@@ -1,0 +1,39 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:14
+    container_name: postgres
+    volumes:
+      - ./db/initdb:/docker-entrypoint-initdb.d
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=chat
+    restart: always
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      target: "develop-stage"
+    image: web-app
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+    volumes:
+      - ./frontend:/usr/src/frontend
+    command: sh -c "npm run dev"
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+      target: "develop-stage"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/usr/src/backend
+    command: /bin/sh -c "cargo run"
